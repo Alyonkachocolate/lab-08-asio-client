@@ -18,7 +18,7 @@ class talk_to_server {
   std::string username_;
 
  public:
-  explicit talk_to_server(std::string  username)
+  explicit talk_to_server(std::string username)
       : socket_(service), started_(true), username_(std::move(username)) {}
 
   // коннект с сервером
@@ -40,7 +40,7 @@ class talk_to_server {
   void read_answer() {
     already_read_ = 0;
     read(socket_, buffer(buff_),
-         [this](auto&& PH1, auto&& PH2) { read_complete(PH1, PH2); });
+         boost::bind(&talk_to_server::read_complete, this, _1, _2));
     process_msg();
   }
 
@@ -99,5 +99,3 @@ void run_client(const std::string& client_name) {
     std::cout << "Client terminated" << std::endl;
   }
 }
-
-int main() { return 0; }
