@@ -1,6 +1,7 @@
 // Copyright [2021] <Alyona Dorodnyaya>
 
 #include <client.hpp>
+#include <utility>
 
 using boost::asio::buffer;
 using boost::asio::ip::tcp;
@@ -11,14 +12,14 @@ boost::asio::io_service service;
 class talk_to_server {
  private:
   tcp::socket socket_;
-  int already_read_ = 1;
+  int already_read_;
   char buff_[1024];
   bool started_;  // меняется в сервере
   std::string username_;
 
  public:
-  explicit talk_to_server(std::string& username)
-      : socket_(service), started_(true), username_(username) {}
+  explicit talk_to_server(std::string  username)
+      : socket_(service), started_(true), username_(std::move(username)) {}
 
   // коннект с сервером
   void connect(tcp::endpoint ep) { socket_.connect(ep); }
@@ -86,3 +87,17 @@ class talk_to_server {
   // знак, что клиент не отключен
   void write_request() { socket_.write_some(buffer("PING\n")); }
 };
+
+// функция для подключения к серверу
+boost::asio::ip::tcp::endpoint ep(tcp::v4(), 8001);
+void run_client(const std::string& client_name) {
+  talk_to_server client(client_name);
+  try {
+    client.connect(ep);
+    client.request();
+  } catch (boost::system::system_error& err) {
+    std::cout << "Client terminated" << std::endl;
+  }
+}
+
+int main() { return 0; }
